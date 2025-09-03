@@ -29,6 +29,7 @@ export const registerUser = async (req, res) => {
 
     if (user) {
       res.status(201).json({
+         message: "User's registration successfully Completed",
         _id: user._id,
         name: user.name,
         email: user.email,
@@ -115,5 +116,152 @@ export const logoutUser = (req, res) => {
     res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
     res.status(500).json({ message: "Logout failed", error: error.message });
+  }
+};
+
+
+
+
+
+// Add new address to user
+export const addAddress = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id); // login user
+ 
+    if (req.body.isDefault) {
+  user.addresses.forEach(addr => (addr.isDefault = false)); 
+}
+
+
+    if (user) {
+      user.addresses.push(req.body); 
+      await user.save();
+      res.status(201).json({ message: "Address added successfully", addresses: user.addresses });
+    } else {
+      res.status(404).json({ message: "User not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+
+
+
+//Update Address API
+export const updateAddress = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (user) {
+      const address = user.addresses.id(req.params.addressId); // find by subdoc id
+
+      if (address) {
+        if (req.body.isDefault === true) {
+          user.addresses.forEach(addr => {
+            addr.isDefault = false;
+          });
+          address.isDefault = true;
+        }
+
+        // Update other fields if provided
+        address.street = req.body.street || address.street;
+        address.city = req.body.city || address.city;
+        address.state = req.body.state || address.state;
+        address.postalCode = req.body.postalCode || address.postalCode;
+        address.country = req.body.country || address.country;
+
+        await user.save();
+        res.json({ message: "Address updated", addresses: user.addresses });
+      } else {
+        res.status(404).json({ message: "Address not found" });
+      }
+    } else {
+      res.status(404).json({ message: "User not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+
+
+
+// Get all addresses of logged-in user
+export const getAddresses = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select("addresses");
+
+    if (user) {
+      res.json({ addresses: user.addresses });
+    } else {
+      res.status(404).json({ message: "User not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+
+
+
+// Update logged-in user profile
+export const updateUserProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    //  Duplicate Email Check
+    if (req.body.email && req.body.email !== user.email) {
+      const emailExists = await User.findOne({ email: req.body.email });
+      if (emailExists) {
+        return res.status(400).json({ message: "Email already in use" });
+      }
+      user.email = req.body.email;
+    }
+
+    // Duplicate Phone Check
+    if (req.body.phone && req.body.phone !== user.phone) {
+      const phoneExists = await User.findOne({ phone: req.body.phone });
+      if (phoneExists) {
+        return res.status(400).json({ message: "Phone number already in use" });
+      }
+      user.phone = req.body.phone;
+    }
+
+    //  Name Update
+    if (req.body.name) {
+      user.name = req.body.name;
+    }
+
+    //Password Update with Current Password Check
+    if (req.body.currentPassword && req.body.newPassword) {
+      const isMatch = await user.matchPassword(req.body.currentPassword);
+
+      if (!isMatch) {
+        return res.status(400).json({ message: "Current password is incorrect" });
+      }
+
+      user.password = req.body.newPassword; 
+    }
+
+    const updatedUser = await user.save();
+
+    res.json({
+      message: "User profile updated successfully",
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      phone: updatedUser.phone,
+      isAdmin: updatedUser.isAdmin,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
