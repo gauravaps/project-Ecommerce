@@ -1,7 +1,7 @@
 import express from "express";
 import { addAddress, getAddresses, loginUser, logoutUser, registerUser, updateAddress, updateUserProfile } from "../controllers/UserController.js";
 import { isAdmin, verifyToken } from "../middleware/authMiddleware.js";
-import { deleteUser } from "../controllers/UserAdminController.js";
+import { deleteUser, updateUserByAdmin } from "../controllers/UserAdminController.js";
 const router = express.Router();
 
 
@@ -40,6 +40,12 @@ router.put('/update_self' , verifyToken , updateUserProfile);
 
 // Delete normal user by admin
 router.delete('/delete_user/:id', verifyToken , isAdmin , deleteUser)
+
+
+//update normal user and admin user user by Admin..
+router.put('/update_user_byadmin/:id' , verifyToken ,isAdmin , updateUserByAdmin);
+
+
 
 
 
