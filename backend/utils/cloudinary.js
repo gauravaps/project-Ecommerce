@@ -3,25 +3,23 @@ import { v2 as cloudinary } from "cloudinary";
 import dotenv from "dotenv";
 dotenv.config();
 
-
-
 cloudinary.config({ 
-    cloud_name: process.env.CLOUD_NAME, 
-    api_key:process.env.CLOUD_API_KEY, 
-    api_secret:process.env.CLOUD_API_SECRET,
-  });
-  
-  const uploadonCloudinary = async (localFilepath, folderName = "furniture_Store") => {
+  cloud_name: process.env.CLOUD_NAME, 
+  api_key: process.env.CLOUD_API_KEY, 
+  api_secret: process.env.CLOUD_API_SECRET,
+});
+
+const uploadonCloudinary = async (localFilepath, category = "General") => {
   try {
     if (!localFilepath) return null;
 
+    // Folder structure: furnitureStore/<Category>
     const response = await cloudinary.uploader.upload(localFilepath, {
-      folder: folderName,
+      folder: `furnitureStore/${category}`,
       resource_type: "auto",
     });
 
-    console.log('cloudinary response =' , response);
-    
+    console.log("cloudinary response =", response);
 
     if (fs.existsSync(localFilepath)) {
       fs.unlinkSync(localFilepath); // delete only if exists
@@ -35,7 +33,5 @@ cloudinary.config({
     return null;
   }
 };
-
-
 
 export default uploadonCloudinary;
