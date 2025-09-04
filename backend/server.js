@@ -5,6 +5,7 @@ import cors from 'cors';
 import cookieParser from "cookie-parser";
 import userRouter from './routes/UserRoutes.js'
 import productRouter from './routes/ProductRoute.js'
+import orderRouter from  "./routes/OrderRoute.js"
 
 
 
@@ -31,6 +32,10 @@ app.use('/api' , userRouter);
 
 //Product router /api
 app.use('/api' , productRouter)
+
+
+//Order router /api
+app.use('/api' , orderRouter)
 
 
 
