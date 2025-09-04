@@ -15,7 +15,6 @@ export const addReview = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    // Check if user bought this product (orderItems ki wajah se change kiya)
     const hasOrdered = await Order.findOne({
       user: req.user._id,
       "orderItems.product": productId,
