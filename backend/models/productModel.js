@@ -63,7 +63,7 @@ const productSchema = new mongoose.Schema(
     category: {
       type: String,
       required: true,
-      enum: ["Chair", "Bed", "Double Bed", "Table", "Lamp", "Almira", "Doors"],
+      enum: ["Chair", "Bed", "Tample", "Table", "Lamp", "Almira", "Doors" ,"Sofa"],
         set: (value) => {
     if (!value) return value;
     return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();

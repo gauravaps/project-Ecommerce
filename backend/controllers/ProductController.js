@@ -134,3 +134,75 @@ export const deleteProduct = async (req, res) => {
 
 
 
+
+
+// Get All Products (with search, filter, pagination)
+export const getAllProducts = async (req, res) => {
+  try {
+    const page = Number(req.query.page) || 1;       
+    const limit = Number(req.query.limit) || 5;   
+    const skip = (page - 1) * limit;
+
+    const keyword = req.query.keyword
+      ? { name: { $regex: req.query.keyword, $options: "i" } }
+      : {};
+
+    const category = req.query.category
+      ? { category: req.query.category }
+      : {};
+
+    const priceFilter = {};
+    if (req.query.minPrice) {
+      priceFilter.$gte = Number(req.query.minPrice);
+    }
+    if (req.query.maxPrice) {
+      priceFilter.$lte = Number(req.query.maxPrice);
+    }
+    const price = Object.keys(priceFilter).length > 0 ? { price: priceFilter } : {};
+
+    // Final filter object
+    const filter = { ...keyword, ...category, ...price };
+
+    // Get total products count
+    const total = await Product.countDocuments(filter);
+
+    // Get products with filter + pagination
+    const products = await Product.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      message: "Products fetched successfully",
+      page,
+      totalPages: Math.ceil(total / limit),
+      totalProducts: total,
+      products,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+
+
+
+//  Get Single Product by ID
+export const getSingleProduct = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    res.status(200).json({
+      message: "Product fetched successfully",
+      product,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+

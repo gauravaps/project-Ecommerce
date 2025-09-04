@@ -1,6 +1,6 @@
 import express from "express";
 import { isAdmin, verifyToken } from "../middleware/authMiddleware.js";
-import { addProduct, deleteProduct, updateProduct } from "../controllers/ProductController.js";
+import { addProduct, deleteProduct, getAllProducts, getSingleProduct, updateProduct } from "../controllers/ProductController.js";
 import upload from "../middleware/multer.middileware.js";
 import { addReview } from "../controllers/Reviewcontroller.js";
 const router = express.Router();
@@ -26,6 +26,15 @@ router.post('/add_rating_comment' , verifyToken , addReview);
 
 //// Delete Product 
 router.delete("/delete-product/:id" , verifyToken ,isAdmin ,deleteProduct)
+
+
+// Get All Products (with search, filter, pagination)
+router.get('/get-all-product' , verifyToken , getAllProducts);
+
+
+
+//  Get Single Product by ID
+router.get("/get-single-product/:id" , verifyToken , getSingleProduct)
 
 
 
