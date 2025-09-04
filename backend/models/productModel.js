@@ -53,6 +53,8 @@ const productSchema = new mongoose.Schema(
 
     },
 
+    imagePublicId: { type: String },
+
     brand: {
       type: String,
       required: true,
@@ -62,6 +64,10 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: true,
       enum: ["Chair", "Bed", "Double Bed", "Table", "Lamp", "Almira", "Doors"],
+        set: (value) => {
+    if (!value) return value;
+    return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+  },
     },
 
     description: {
