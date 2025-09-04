@@ -3,12 +3,11 @@ import uploadonCloudinary from "../utils/cloudinary.js";
 
 export const addProduct = async (req, res) => {
   try {
-    const { name, brand, category, description, price, countInStock } = req.body;
+    const { name, brand, category, description, price, countInStock,rating } = req.body;
 
     let imageUrl;
 
     if (req.file) {
-      // Agar image upload ki gayi hai → Cloudinary pe bhej do
       const uploadResponse = await uploadonCloudinary(req.file.path, category);
 
       if (!uploadResponse) {
@@ -17,7 +16,6 @@ export const addProduct = async (req, res) => {
 
       imageUrl = uploadResponse.secure_url;
     } else {
-      // Agar image nahi aayi → model ke default image ka use karo
       imageUrl =
         "https://res.cloudinary.com/gauravkacloud/image/upload/v1731986753/photo_yrra2i.png";
     }
@@ -31,6 +29,7 @@ export const addProduct = async (req, res) => {
       description,
       price,
       countInStock,
+      rating
     });
 
     const createdProduct = await product.save();
@@ -43,3 +42,7 @@ export const addProduct = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+
+
+

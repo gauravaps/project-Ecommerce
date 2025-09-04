@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import cookieParser from "cookie-parser";
 import userRouter from './routes/UserRoutes.js'
+import productRouter from './routes/ProductRoute.js'
 
 
 
@@ -26,6 +27,10 @@ app.use(cookieParser());
 
 //User router /api
 app.use('/api' , userRouter);
+
+
+//Product router /api
+app.use('/api' , productRouter)
 
 
 
