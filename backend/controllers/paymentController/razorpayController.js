@@ -1,8 +1,8 @@
 import Razorpay from "razorpay";
 import crypto from "crypto";
 import PaymentModel from "../../models/PaymentModel.js";
-import Order from "../../models/Order.js";
-
+import Order from "../../models/OrderModel.js";
+ 
 // Razorpay instance
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -22,10 +22,11 @@ export const createRazorpayOrder = async (req, res) => {
     const order = await Order.findById(orderId).populate("user", "email name");
     if (!order) return res.status(404).json({ message: "Order not found" });
 
-    // Security: ensure order belongs to current user (if you want strict check)
-    if (order.user.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: "Not allowed for this order" });
-    }
+    // Security: ensure order belongs to current user (except admin)
+if (!req.user.isAdmin && order.user._id.toString() !== req.user._id.toString()) {
+  return res.status(403).json({ message: "Not allowed for this order" });
+}
+
 
     if (order.totalPrice <= 0) {
       return res.status(400).json({ message: "Invalid order total" });
