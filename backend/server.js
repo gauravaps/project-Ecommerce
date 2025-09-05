@@ -6,6 +6,8 @@ import cookieParser from "cookie-parser";
 import userRouter from './routes/UserRoutes.js'
 import productRouter from './routes/ProductRoute.js'
 import orderRouter from  "./routes/OrderRoute.js"
+import paymentRouter from './routes/paymentRoutes.js';
+
 
 
 
@@ -37,6 +39,8 @@ app.use('/api' , productRouter)
 //Order router /api
 app.use('/api' , orderRouter)
 
+// Payment router /api
+app.use('/api', paymentRouter);
 
 
 

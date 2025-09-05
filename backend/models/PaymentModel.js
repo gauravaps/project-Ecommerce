@@ -8,6 +8,8 @@ const paymentSchema = new mongoose.Schema(
       required: true,
     },
 
+    order: { type: mongoose.Schema.Types.ObjectId, ref: "Order", required: true },
+
     orderId: {
       type: String, 
       required: true,
@@ -17,6 +19,7 @@ const paymentSchema = new mongoose.Schema(
       type: String,
       enum: ["razorpay", "paypal", "stripe"], 
       required: true,
+      default: "razorpay",
     },
 
     // Razorpay specific fields
