@@ -5,8 +5,8 @@ import { createRazorpayOrder, verifyRazorpayPayment } from "../controllers/payme
 
 
 
-router.post("/create-order",verifyToken, createRazorpayOrder);
-router.post("/verify-payment", verifyToken, verifyRazorpayPayment);
+router.post("/create-order-razorpay",verifyToken, createRazorpayOrder);
+router.post("/verify-payment-razorpay", verifyToken, verifyRazorpayPayment);
 
 
 

@@ -7,6 +7,7 @@ import userRouter from './routes/UserRoutes.js'
 import productRouter from './routes/ProductRoute.js'
 import orderRouter from  "./routes/OrderRoute.js"
 import paymentRouter from './routes/paymentRoutes.js';
+import genSignatureRouter from './helper/genSignature.js';
 
 
 
@@ -41,6 +42,11 @@ app.use('/api' , orderRouter)
 
 // Payment router /api
 app.use('/api', paymentRouter);
+
+
+//testing route for generate signature
+// app.use('/api', genSignatureRouter);
+app.use('/api' , genSignatureRouter);
 
 
 

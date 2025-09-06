@@ -145,6 +145,13 @@ export const verifyRazorpayPayment = async (req, res) => {
 
 
 
+
+
+
+
+
+
+
 // 3) OPTIONAL: Razorpay Webhook (as backup)
 // export const razorpayWebhook = async (req, res) => {
 //   try {
