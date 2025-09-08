@@ -204,5 +204,74 @@ export const getSingleProduct = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
-};
+}; 
 
+
+
+
+
+//method post
+//access admin/user both but only who bought the product or ordered the product
+//api/productreview/:id
+export const createProductReview = async (req, res) => {
+  const { rating, comment } = req.body;
+
+  try {
+    const product = await Product.findById(req.params.id);
+
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    // Check if the user has purchased this product or not
+    await req.user.populate({
+      path: "orders",
+      populate: {
+        path: "orderItems.product",
+        model: "Product",
+      },
+    });
+    const hasPurchased = req.user.orders.some((order) =>
+      order.orderItems.find((item) => item.product.toString() === product._id.toString())
+    );
+
+    if (!hasPurchased) {
+      return res.status(403).json({ message: "Not authorized to review this product" });
+    }
+
+
+
+    // Check if the user has already reviewed this product
+    const alreadyReviewed = product.reviews.find(
+      (r) => r.user.toString() === req.user._id.toString()
+    );
+
+    if (alreadyReviewed) {
+      return res.status(400).json({ message: "Product already reviewed" });
+    }
+
+    const review = {
+      user: req.user._id,
+      name: req.user.name,
+      rating: Number(rating),
+      comment,
+    };
+
+    product.reviews.push(review);
+    product.numReviews = product.reviews.length;
+
+    // Calculate new average rating
+    product.rating =
+      product.reviews.reduce((acc, item) => item.rating + acc, 0) /
+      product.reviews.length;
+
+    await product.save();
+
+    res.status(201).json({
+      message: "Review added successfully",
+      review: product.reviews[product.reviews.length - 1],
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
