@@ -1,5 +1,5 @@
 import express from "express";
-import { addOrder, getAllOrders, getMyOrders, getOrderById } from "../controllers/OrderController.js";
+import { addOrder, getAllOrders, getMyOrders, getOrderById, updateOrderToDelivered } from "../controllers/OrderController.js";
 import { verifyToken } from "../middleware/authMiddleware.js";
 import { isAdmin } from "../middleware/authMiddleware.js"; 
 const router = express.Router();
@@ -21,5 +21,9 @@ router.get("/all-orders", verifyToken, isAdmin, getAllOrders);
 
 // Get order by Id
 router.get("/single-order/:id", verifyToken, getOrderById);
+
+
+//update order to delivered
+router.put("/:id/delivered", verifyToken, isAdmin, updateOrderToDelivered);
 
 export default router;
