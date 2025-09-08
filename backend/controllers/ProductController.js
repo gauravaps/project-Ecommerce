@@ -213,7 +213,7 @@ export const getSingleProduct = async (req, res) => {
 
 //method post
 //access admin/user both but only who bought the product or ordered the product
-//api/productreview/:id
+//api/productreview/:id;
 export const createOrUpdateProductReview = async (req, res) => {
   try {
     const { rating, comment } = req.body;
@@ -230,10 +230,10 @@ export const createOrUpdateProductReview = async (req, res) => {
       isDelivered: true,
       "orderItems.product": productId,
     });
-
+ 
     if (!hasOrdered) {
       return res.status(400).json({
-        message: "You can only review this product after ordering and receiving it",
+        message: "You can only review this product after ordering and receiving it..",
       });
     }
 
@@ -255,7 +255,7 @@ export const createOrUpdateProductReview = async (req, res) => {
       product.reviews.push(review);
     }
 
-    // 4) Recalculate numReviews & average rating
+    // 4) Recalculate numReviews & average rating;
     product.numReviews = product.reviews.length;
     product.rating =
       product.reviews.reduce((acc, r) => acc + r.rating, 0) /
