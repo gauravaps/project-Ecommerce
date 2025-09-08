@@ -1,3 +1,4 @@
+import Order from "../models/OrderModel.js";
 import Product from "../models/productModel.js";
 import uploadonCloudinary from "../utils/cloudinary.js";
 import { v2 as cloudinary } from "cloudinary";
@@ -213,65 +214,68 @@ export const getSingleProduct = async (req, res) => {
 //method post
 //access admin/user both but only who bought the product or ordered the product
 //api/productreview/:id
-export const createProductReview = async (req, res) => {
-  const { rating, comment } = req.body;
-
+export const createOrUpdateProductReview = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const { rating, comment } = req.body;
+    const productId = req.params.id;
+    const userId = req.user._id;
 
+    const product = await Product.findById(productId);
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    // Check if the user has purchased this product or not
-    await req.user.populate({
-      path: "orders",
-      populate: {
-        path: "orderItems.product",
-        model: "Product",
-      },
+    const hasOrdered = await Order.findOne({
+      user: userId,
+      isDelivered: true,
+      "orderItems.product": productId,
     });
-    const hasPurchased = req.user.orders.some((order) =>
-      order.orderItems.find((item) => item.product.toString() === product._id.toString())
-    );
 
-    if (!hasPurchased) {
-      return res.status(403).json({ message: "Not authorized to review this product" });
+    if (!hasOrdered) {
+      return res.status(400).json({
+        message: "You can only review this product after ordering and receiving it",
+      });
     }
 
-
-
-    // Check if the user has already reviewed this product
-    const alreadyReviewed = product.reviews.find(
-      (r) => r.user.toString() === req.user._id.toString()
+    const existingReviewIndex = product.reviews.findIndex(
+      (r) => r.user.toString() === userId.toString()
     );
 
-    if (alreadyReviewed) {
-      return res.status(400).json({ message: "Product already reviewed" });
+    if (existingReviewIndex !== -1) {
+      product.reviews[existingReviewIndex].rating = Number(rating);
+      product.reviews[existingReviewIndex].comment = comment;
+      product.reviews[existingReviewIndex].updatedAt = new Date();
+    } else {
+      const review = {
+        name: req.user.name,
+        rating: Number(rating),
+        comment,
+        user: userId,
+      };
+      product.reviews.push(review);
     }
 
-    const review = {
-      user: req.user._id,
-      name: req.user.name,
-      rating: Number(rating),
-      comment,
-    };
-
-    product.reviews.push(review);
+    // 4) Recalculate numReviews & average rating
     product.numReviews = product.reviews.length;
-
-    // Calculate new average rating
     product.rating =
-      product.reviews.reduce((acc, item) => item.rating + acc, 0) /
+      product.reviews.reduce((acc, r) => acc + r.rating, 0) /
       product.reviews.length;
 
     await product.save();
 
-    res.status(201).json({
-      message: "Review added successfully",
-      review: product.reviews[product.reviews.length - 1],
+    return res.status(201).json({
+      message:
+        existingReviewIndex !== -1
+          ? "Review updated successfully"
+          : "Review added successfully",
+      review: {
+        rating: Number(rating),
+        comment,
+        verifiedPurchase: true,
+      },
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Error in createOrUpdateProductReview:", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
