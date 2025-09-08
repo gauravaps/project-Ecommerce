@@ -100,3 +100,44 @@ export const getMyOrders = async (req, res) => {
 };
 
 
+
+// @desc    Get all orders (Admin only)
+// @access  Private/Admin
+export const getAllOrders = async (req, res) => {
+  try {
+    const orders = await Order.find({}).populate("user", "id name email").sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: orders.length,
+      orders,
+    });
+  } catch (error) {
+    console.error("Error fetching all orders:", error);
+    res.status(500).json({ message: "Server error while fetching all orders" });
+  }
+};
+
+
+
+//Get order by Id
+//post /api/order/:id
+// @access  Private (user can see own order, admin can see any order)
+export const getOrderById = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id).populate("user", "name email");
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Check if the logged-in user is the owner of the order or an admin
+    if (order.user._id.toString() !== req.user._id.toString() && !req.user.isAdmin) {
+      return res.status(403).json({ message: "Not authorized to view this order" });
+    }
+
+    res.status(200).json(order);
+  } catch (error) {
+    console.error("Error fetching order by ID:", error);
+    res.status(500).json({ message: "Server error while fetching order" });
+  }
+};
