@@ -54,4 +54,4 @@ const paymentSchema = new mongoose.Schema(
 
 const PaymentModel = mongoose.model("payments", paymentSchema);
 
-export default PaymentModel;
+export default PaymentModel; 
