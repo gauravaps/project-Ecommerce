@@ -1,35 +1,62 @@
-import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
+import { useState } from "react";
 
 function PaymentPage() {
+  const [orderId, setOrderId] = useState("");
+  const [approveUrl, setApproveUrl] = useState("");
+  const [message, setMessage] = useState("");
+
+  const handleCapture = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/payments/capture-payment-paypal", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", 
+        body: JSON.stringify({ orderId }),
+      });
+
+      const data = await res.json();
+      setMessage(JSON.stringify(data, null, 2));
+    } catch (err) {
+      setMessage("Error: " + err.message);
+    }
+  };
+
   return (
-    <div style={{ textAlign: "center", marginTop: "50px" }}>
-      <h2>Test PayPal Payment</h2>
-      <PayPalScriptProvider options={{ "client-id": "test" }}>
-        <PayPalButtons
-          style={{ layout: "vertical" }}
-          createOrder={(data, actions) => {
-            return actions.order.create({
-              purchase_units: [
-                {
-                  amount: { value: "10.00" }, // dummy amount
-                },
-              ],
-              application_context: {
-                return_url: "http://localhost:5173/payment-success",
-                cancel_url: "http://localhost:5173/payment-cancel",
-              },
-            });
-          }}
-          onApprove={(data, actions) => {
-            return actions.order.capture().then((details) => {
-              alert("Payment Successful by " + details.payer.name.given_name);
-            });
-          }}
-          onCancel={() => {
-            alert("Payment Cancelled!");
-          }}
-        />
-      </PayPalScriptProvider>
+    <div style={{ padding: "30px" }}>
+      <h2>Manual PayPal Test</h2>
+
+      <input
+        type="text"
+        placeholder="Paste PayPal Order ID here"
+        value={orderId}
+        onChange={(e) => setOrderId(e.target.value)}
+        style={{ padding: "8px", marginRight: "10px" }}
+      />
+      <button onClick={handleCapture} style={{ padding: "8px 15px" }}>
+        Capture Payment
+      </button>
+
+      <br /><br />
+      <input
+        type="text"
+        placeholder="Paste Approve URL here"
+        value={approveUrl}
+        onChange={(e) => setApproveUrl(e.target.value)}
+        style={{ width: "400px", padding: "8px" }}
+      />
+      {approveUrl && (
+        <p>
+          <a href={approveUrl} target="_blank" rel="noreferrer">
+            👉 Open Approve URL (PayPal)
+          </a>
+        </p>
+      )}
+
+      <pre style={{ marginTop: "20px", background: "#eee", padding: "15px" }}>
+        {message}
+      </pre>
     </div>
   );
 }
