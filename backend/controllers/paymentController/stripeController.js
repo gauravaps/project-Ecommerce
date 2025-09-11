@@ -123,7 +123,7 @@ export const confirmStripePayment = async (req, res) => {
 
 
 
-// 3) Create Checkout Session optional (frontend redirect to Stripe hosted page)
+// 2.1 first part) second option Create Checkout Session optional (frontend redirect to Stripe hosted page)
 export const createStripeCheckoutSession = async (req, res) => {
   try {
     const { orderId } = req.body;
@@ -179,6 +179,74 @@ export const createStripeCheckoutSession = async (req, res) => {
       url: session.url, // frontend will redirect user here
       sessionId: session.id,
     });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+
+
+
+
+
+
+
+
+
+// 2.2 second part ) second method for Verify Checkout Session & mark order paid
+export const verifyCheckoutSession = async (req, res) => {
+  try {
+    const { sessionId } = req.body;
+    if (!sessionId) return res.status(400).json({ message: "sessionId is required" });
+
+    const session = await stripe.checkout.sessions.retrieve(sessionId, {
+      expand: ["payment_intent"],
+    });
+
+    if (!session) return res.status(404).json({ message: "Session not found" });
+
+    const paymentIntent = session.payment_intent;
+    if (!paymentIntent) return res.status(400).json({ message: "No payment_intent on session" });
+
+    if (paymentIntent.status !== "succeeded") {
+      return res.status(400).json({ message: "Payment not completed", paymentIntent });
+    }
+
+    // get orderId from session metadata (we set it on create)
+    const dbOrderId = session.metadata?.orderId;
+    if (!dbOrderId) return res.status(400).json({ message: "No orderId in session metadata" });
+
+    // Update PaymentModel
+    await PaymentModel.findOneAndUpdate(
+      { order: dbOrderId },
+      {
+        status: "completed",
+        stripe_payment_intent_id: paymentIntent.id,
+        stripe_charge_id: paymentIntent.latest_charge,
+        paymentMethod: "stripe",
+        orderId: paymentIntent.id,
+        currency: paymentIntent.currency?.toUpperCase() || "INR",
+      },
+      { upsert: false, new: true }
+    );
+
+    // Update Order
+    const paidOrder = await Order.findByIdAndUpdate(
+      dbOrderId,
+      {
+        isPaid: true,
+        paidAt: new Date(),
+        paymentMethod: "stripe",
+        paymentResult: {
+          id: paymentIntent.id,
+          status: paymentIntent.status,
+          update_time: new Date().toISOString(),
+          email_address: session.customer_email || "",
+        },
+      },
+      { new: true }
+    );
+
+    return res.status(200).json({ message: "Checkout session verified & order marked paid", order: paidOrder });
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
