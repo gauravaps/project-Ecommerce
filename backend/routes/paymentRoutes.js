@@ -14,11 +14,13 @@ router.post("/verify-payment-razorpay", verifyToken, verifyRazorpayPayment);
 router.post("/create-order-paypal", verifyToken, createPaypalOrder);
 router.post("/capture-payment-paypal", verifyToken, capturePaypalPayment);
 
-
+ 
 // Stripe Payment Routes
 router.post("/create-payment-stripe", verifyToken, createStripePaymentIntent);
 router.post("/confirm-payment-stripe", verifyToken, confirmStripePayment); 
+
 // Stripe Checkout Session optional (frontend redirect to Stripe hosted page)
+//use this route for production********
 router.post("/create-checkout-session", verifyToken, createStripeCheckoutSession);
 router.post("/verify-checkout-session", verifyToken, verifyCheckoutSession); 
 

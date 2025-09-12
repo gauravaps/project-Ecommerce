@@ -30,6 +30,12 @@ export const createStripePaymentIntent = async (req, res) => {
     const paymentIntent = await stripe.paymentIntents.create({
       amount: toPaise(order.totalPrice),
       currency: "inr",
+
+      automatic_payment_methods: {
+    enabled: true,
+    allow_redirects: "never", 
+  },
+
       metadata: {
         orderId: order._id.toString(),
         userId: req.user._id.toString(),
@@ -63,22 +69,30 @@ export const createStripePaymentIntent = async (req, res) => {
   }
 };
 
+
+
+
 // 2) Confirm payment (for backend test via Postman)
 export const confirmStripePayment = async (req, res) => {
   try {
     const { paymentIntentId, orderId } = req.body;
 
     if (!paymentIntentId || !orderId) {
-      return res.status(400).json({ message: "paymentIntentId & orderId required" });
+      return res
+        .status(400)
+        .json({ message: "paymentIntentId & orderId required" });
     }
 
-    // Confirm PaymentIntent
+    // ✅ Confirm PaymentIntent (only cards, no redirects)
     const paymentIntent = await stripe.paymentIntents.confirm(paymentIntentId, {
       payment_method: "pm_card_visa", // Stripe test card
     });
 
     if (paymentIntent.status !== "succeeded") {
-      return res.status(400).json({ message: "Payment not successful", paymentIntent });
+      return res.status(400).json({
+        message: "Payment not successful",
+        paymentIntent,
+      });
     }
 
     // Update Payment record
@@ -124,6 +138,7 @@ export const confirmStripePayment = async (req, res) => {
 
 
 // 2.1 first part) second option Create Checkout Session optional (frontend redirect to Stripe hosted page)
+// Usw controller this for production********
 export const createStripeCheckoutSession = async (req, res) => {
   try {
     const { orderId } = req.body;
